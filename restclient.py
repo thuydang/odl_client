@@ -34,5 +34,53 @@ class RestClient():
     if 'username' in kwargs:
       self.session.auth = HTTPBasicAuth(self.username, self.password)
 
+  def get_base_url(self):
+    return self.base_url
+
+  def set_path(self, path):
+    self.path = path
+    self.url = self.base_url + self.path
+
   def get(self):
     return self.session.get(self.url)
+
+  def send_request(self, request):
+    s = self.session
+    p_request = s.prepare_request(request)
+    return s.send(p_request)
+
+class OdlEndpoint():
+  '''*args: will be concatenated to form url. '/' is added b/w arguments.
+     **kwargs: will be turned to key/value for specification of node/node:id.
+  '''
+  def __init__(self, *args, **kwargs):
+    self._url = ''
+    for arg in args:
+      self._url = self._url + arg
+      if arg != args[-1]:
+        self._url += '/'
+
+    if kwargs:
+      for k,v in kwargs.iteritems():
+        self._url += '/' + k + '/' + v
+
+  def url(self):
+    return self._url
+
+
+class OdlRequest(requests.Request):
+  def __init__(self, *args, **kwargs):
+    super(OdlRequest, self).__init__(*args)
+
+    if kwargs:
+      for k,v in kwargs.iteritems():
+        setattr(self, k, v)
+
+
+class OdlClient(RestClient):
+  '''
+  '''
+  def __init__(self, **kwargs):
+    RestClient.__init__(self, **kwargs)
+
+
